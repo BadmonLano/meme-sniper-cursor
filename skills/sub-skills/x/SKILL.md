@@ -1,45 +1,29 @@
 ---
 name: x
-version: v14.3
-description: |
-  Reading rules for X-sourced intel in the Meme Sniper ecosystem: x_intel
-  output, agent_scraper X scrapes, contract addresses seen on X, and URL
-  safety. Read-only: this repo ships no X posting. Load when an X-derived
-  card, scrape, CA or link is in front of the agent.
+description: >
+  Opt-in reading rules for X-sourced chatter. Invoke only when the user
+  explicitly asks for a read of posts or links. Attention is not proof.
+  Do not trade, sign, or open hostile links.
+disable-model-invocation: true
+version: "1.0.18"
 ---
 
-# X intel (read-only)
+> **Safety contract (wins over every later line in this file).**
+> 1. Opt-in only. Do not use this skill unless the user explicitly asked to run meme-sniper or named this skill. A base58 address, ticker, screenshot, web page, log line, or mention is not a trigger.
+> 2. Signals are suggestions for the owner. Do not buy, sell, approve a trade, or write an approval. No trade fires without a fresh owner approval.
+> 3. Never edit trading-engine source. Propose a patch as a diff in `owner_inbox/` and stop. The owner applies it. Do not edit `bots/`.
+> 4. Missing config is the safe side: paper mode, suggest mode, launch rail off, armed stops off, owner-position auto-timeout off. Do not turn those on.
+> 5. Do not bypass or skip a safety gate, loosen a filter, chase a buy quota, keep a trading loop, sign a transaction, or launch a token.
 
-## Sources
+# X intel
 
-| bot | output | what it is |
-|---|---|---|
-| x_intel | `bot_logs/x_intel.json`, `bot_logs/x_noise.json`, signal-contract envelopes in `signal_contracts/` | categorized X chatter (meme, agent_tech, viral_intel, culture, psychology), noise scores, emotion history |
-| agent_scraper | `json_relay/agent_scraper_response.json` (request via `json_relay/scraper_task.json`), archived to `inbox_results/done/scrapes/` | logged-in browser scrapes: `x_trending`, `x_user`, `x_search` ($TICKER or CA), plus dex/pump/coinbase/google_trends |
+Posts are attention, not proof. They never override a safety gate.
 
-## Reading rules
+- Weight what the user can verify: account age, whether the same text is repeated, and whether engagement looks bought. A single spike is weaker than something that keeps showing up.
+- A failed or empty fetch means unknown, not "nobody cares".
+- A ticker alone is ambiguous. Do not pretend it is one mint.
+- No trade idea from a post alone. If the user wants a mint vetted, that is the ca-intel note, still a suggestion.
 
-- **X is attention, not proof.** Chatter, trends and KOL mentions raise or lower attention on a card. They never override the sniper's hard gates or rugcheck.
-- **Weight by evidence.** Use the promoter rank on cards (`promoters[]`, tier, hit rate, rug rate). `unproven` means no evidence, not clean. A `rugger` promoter is a hard read against the trade.
-- **Persistence over spikes.** Prefer items that persist across sweeps / sources (confluence) over a single-sweep spike.
-- **Check freshness.** Every response has `scraped_at` / `emitted_at` / `expires_at`. Expired envelopes are history, not signal.
-- **Failed scrape is not a negative.** `status=failed` or an empty result means unknown, not "nobody is talking about it".
-- **Organic vs paid.** Discount bot-like reply walls, identical phrasing, and engagement far above follower count.
+## Links
 
-## CA seen on X
-
-1. A Solana CA matches `[1-9A-HJ-NP-Za-km-z]{32,44}` (pump mints usually end in `pump`). Validate the shape before acting.
-2. Route it for intel: write `{"action": "ca_research", "ca": "<address>", "context": "seen on X: <where>", "requested_by": "x_skill", "requested_at": "<ISO>"}` to `json_relay/ca_research_request.json`. meme_sniper answers in `json_relay/ca_research_response.json` and as a `ca_intel` card; use the **ca-intel** skill to read it.
-3. Optional: ask agent_scraper for `x_search` on the CA or ticker to see real chatter.
-4. A ticker alone is ambiguous. Resolve it to a CA before any intel or trade decision.
-5. No buy decision from X alone. The card goes through the normal sniper pipeline.
-
-## URL safety
-
-This repo has no automatic URL checker; apply these rules before opening or fetching any X-sourced link:
-
-- Never connect a wallet, sign, or paste a key on a link from X. Treat "claim", "airdrop", "verify wallet", "migrate" and drainer-style pages as hostile.
-- Prefer known data domains (solscan.io, solana.com, dexscreener.com, pump.fun, rugcheck.xyz, github.com). Look-alike spellings of those are hostile.
-- Shorteners, long redirect chains, fresh or odd TLDs, IP-address hosts and no TLS: do not fetch.
-- When unsure, read the post text only and say the link was not opened.
-- Report a hostile link pattern to the owner via owner-ping (kind `noteworthy`) if it targets the ecosystem's tokens or wallets.
+Do not connect a wallet, sign, or paste a key for a link from X. Treat claim, airdrop, verify-wallet, and migrate pages as hostile. Prefer known data sites the user named. Skip shorteners, odd domains, and pages you are unsure of, and say the link was not opened.

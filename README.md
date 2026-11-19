@@ -12,23 +12,27 @@ No hype, no ticker. Just the code.
 
 ---
 
-## Always on: loop, cadence and active hours
+## Process uptime, cadence and active hours
 
-Meme Sniper is a **loop meant to run continuously**: the bot runs 24/7 on its cadence and your agent runs the lanes in `automations/` on theirs. It is not a one-shot script.
+The Python engine, after **you** start it, keeps scanning until you stop it. Installing this plugin does not start it, and it does not put any skill into a coding session.
 
-- **Keep it running:** use an always-on hosted agent (best), or auto-start on boot on your own PC: Windows Task Scheduler "At log on" running `python bots/sniper.py --start`, macOS a `launchd` agent, Linux a `systemd --user` service or `@reboot` cron. Have the agent's lane jobs saved as recurring automations so they survive restarts.
-- **Active hours (tunable, `bots/.env`):** `ACTIVE_HOURS` (default `00:00-23:59` = always on; e.g. `09:00-23:00`, overnight `22:00-02:00`, several windows `09:00-12:00,18:00-23:00`), `ACTIVE_TZ` (default `America/New_York`), `ACTIVE_DAYS` (blank = every day; e.g. `mon-fri`). Outside the window the loop idles on new buys and new inbox cards (declined with reason `outside_active_hours`), never cuts off an order mid-send, keeps monitoring running, and resumes on its own when the window opens. A sell still needs your approval unless you set `ARMED_STOPS=1`. The stuck-bag watchdog only retries a sell that already went out. `TRADING_HOURS` / `TRADING_TZ` still work and apply on top (both windows must allow a buy).
+Skills in `skills/` are opt-in. They load only when you explicitly ask for the sniper. They suggest. They do not sign, launch, edit `bots/`, or keep a trading loop. A trade still needs your fresh approval. Patches are diffs in `owner_inbox/` for you to apply.
+
+If you run the engine yourself:
+
+- **Leave the process up, if you want it scanning:** auto-start the **Python** program on boot (Windows Task Scheduler "At log on" running `python bots/sniper.py --start`, macOS a `launchd` agent, Linux a `systemd --user` service or `@reboot` cron). That is the engine, not the IDE assistant.
+- **Active hours (tunable, `bots/.env`):** `ACTIVE_HOURS` (default `00:00-23:59`, the whole day; e.g. `09:00-23:00`, overnight `22:00-02:00`, several windows `09:00-12:00,18:00-23:00`), `ACTIVE_TZ` (default `America/New_York`), `ACTIVE_DAYS` (blank = every day; e.g. `mon-fri`). Outside the window the engine idles on new buys and new inbox cards (declined with reason `outside_active_hours`) and resumes when the window opens. A sell still needs your approval unless you set `ARMED_STOPS=1`. The stuck-bag watchdog only retries a sell that already went out. `TRADING_HOURS` / `TRADING_TZ` still work and apply on top (both windows must allow a buy).
 - **Cadence (tunable):** lane cadences `LANE_CADENCE_SNIPER_LANE_MIN` (10), `LANE_CADENCE_MISC_LANE_MIN` (15), `LANE_CADENCE_WARDEN_LANE_MIN` (20), `LANE_MORNING_BRIEF_AT` (08:00), `LANE_NIGHTLY_EVAL_AT` (23:30). Bot-side cadences keep their existing settings (`AGENT_INBOX_CADENCE_S`, `SNIPER_LAUNCH_POLL_S`, `WALLET_POLL_INTERVAL_S`, `SNIPER_WATCH_INTERVAL_S`).
 - **Check it:** `python bots/active_hours.py` prints whether new entries are allowed right now and each lane's cadence (no secrets).
 - The setup wizard asks active hours right after the agent-autonomy question (`AGENT_MODE`).
 
 ## Works with
 
-Sniper can be run by Grok Bot, Muse, or an agent from any of the larger SI companies: any SI agent that can read and write files and run Python works. No official partnership or endorsement is implied.
+Sniper can be run by Grok Bot, Muse, or an assistant from any of the larger SI companies, when you explicitly ask it to help. Any assistant that can read files and run Python can read a packet you point at. No official partnership or endorsement is implied. Skills stay opt-in.
 
 ## Contents
 
-- [Always on: loop, cadence and active hours](#always-on-loop-cadence-and-active-hours)
+- [Process uptime, cadence and active hours](#process-uptime-cadence-and-active-hours)
 - [Works with](#works-with)
 - [Glossary](#glossary)
 - [Paper quick start (dry run)](#paper-quick-start-dry-run)
@@ -60,13 +64,13 @@ Four pieces that work together:
 3. **GitHub sign-in and repo attach** (`bots/sniper_github.py`). Sign in once with GitHub's device code, list your repos, and attach one to a launch.
 4. **Contribution review and uploader** (also `bots/sniper_github.py`). Scans pull requests and suggestion files from other people, queues them for **you** to review, and packages and publishes your own uploads and releases. Nothing auto-merges.
 
-Around those: an SI "brain" (Grok, OpenAI, Claude, any OpenAI-compatible endpoint, or local Ollama), alerts to your phone, a console dashboard, nightly self-review, and skill files in `skills/` that teach your agent how to trade.
+Around those: an SI "brain" (Grok, OpenAI, Claude, any OpenAI-compatible endpoint, or local Ollama), alerts to your phone, a console dashboard, nightly self-review, and opt-in notes in `skills/`. Those notes are research and suggestion format. They are not loaded unless you ask, and they do not trade.
 
-**Who it's for:** people who run an SI agent that can read files, run Python and keep a loop going, and who understand Solana memecoins and their risks.
+**Who it's for:** people who can run Python and who understand Solana memecoins and their risks. An assistant is optional, and only when you ask it.
 
 ## Glossary
 
-- **SI agent:** your AI agent (hosted or local) that reads packets, decides and writes signals. Sniper executes and guards; the agent decides.
+- **SI agent:** an assistant you explicitly ask to read packets. It suggests. You approve. The engine executes only an approved signal, inside the gates.
 - **Packet / card:** a JSON file the bots write to `inbox/` (or `json_relay/`) for the agent: candidates, rug-check verdicts, acks, alerts.
 - **Signal:** what the agent writes back to `json_relay/agent_signals.json` (buy, sell, set_protection_batch).
 - **Ack / confirmation:** the bot's answer to every signal (`signal_ack_*`, `trade_confirmation_*` or `signal_failure_*` with a reason), echoing your `request_id`.
@@ -145,7 +149,7 @@ Plain English rules for any agent running this drop:
 - **The agent proposes patches. You apply them.** When it spots a bug it writes an owner card in `owner_inbox/` with the evidence, a diff, and a test plan. It does not edit `bots/` (the trading engine) itself.
 - **Fixes for everyone go back as suggestions, not pushes.** If the fix would help other users, send it upstream as a suggestion through the review queue (`bots/sniper_github.py`). Nothing is auto-merged.
 - **Your copy never auto-pulls.** Upstream changes only reach your copy when you choose to update.
-- **Safety caps only loosen with your OK.** The daily loss stop, daily buy cap, fail-closed rug checks, mint/freeze authority gate and max 5-minute pump gate can be tightened only after you say yes, and loosened or switched off only after you say yes. The agent does not change them on its own.
+- **Safety caps move only when you edit them.** The daily loss stop, daily buy cap, fail-closed rug checks, mint/freeze authority gate and max 5-minute pump gate stay where you set them. The assistant does not change them.
 
 ## GitHub basics (new to GitHub? start here)
 
@@ -171,7 +175,7 @@ Plain English rules for any agent running this drop:
 | `bots/chains/` | Chain plug-ins. Solana is the only live one. |
 | `bots/.env.example` | Every setting, blank, with comments. Copy to `bots/.env`. |
 | `bots/examples/` | Sample launch requests (dry-run test included). |
-| `skills/` | Skill files your agent reads to make decisions. |
+| `skills/` | Opt-in research notes. Loaded only when you explicitly ask. |
 | `automations/` | Inbox-check prompts for your agent to schedule: sniper lane, warden lane, misc lane, morning brief (see Quick start step 8). |
 | `rules/` | Your personal trading rules (`rules.example.md` to start). |
 | `learnings/` | Lessons the nightly review writes down. |
@@ -235,11 +239,11 @@ Wallet (key, address, optional cold wallet), RPC (URL, Helius key, Helius plan),
 Meme Sniper ships as a plugin: 11 agent skills (meme-hunter, ca-intel, forensics, gork-lore and the sub-skills) plus this repo's bots. The manifest is in `.cursor-plugin/plugin.json` (Cursor) and `.grok-plugin/plugin.json` (Grok Bot); both list the same skills.
 
 - **Cursor:** once listed, open **Customize** in the sidebar, find **meme-sniper**, then **Install** (project or user scope). To try it before then, clone this repo into `~/.cursor/plugins/local/meme-sniper`, run **Developer: Reload Window**, and check under **Customize** that the skills show up.
-- **Grok Bot or any other SI agent:** clone the repo and point your agent at `SETUP.md`. It loads the skills from `skills/` and sets up the inbox checks in `automations/`.
+- **Grok Bot or any other SI agent:** clone the repo. Skills stay opt-in: open one only when you explicitly ask for the sniper. `automations/` is not a session default.
 
-The skills tell your agent how to run the bots. The bots themselves still run on your machine: follow [Quick start](#quick-start) for the install, then test them as shown below.
+The bots run on your machine when you start them. Follow [Quick start](#quick-start), then the paper check below. The assistant does not start them for you.
 
-### Test it safely (paper first, then one small live buy)
+### Test it safely (paper, owner-run)
 
 1. **Env setup:** copy `bots/.env.example` to `bots/.env`. Never commit `bots/.env` (it's git-ignored) and never paste its keys into chat.
 2. **RPC and a test wallet:** set `RPC_URL` (or `HELIUS_API_KEY`). Make a **new burner wallet** just for testing, fund it with a small amount of SOL, and put it in `HOT_WALLET_PRIVATE_KEY` / `HOT_WALLET_ADDRESS`. Never use your main wallet. Start with `SNIPER_PAPER_MODE=1`, keep the safety caps at their defaults, and set a tiny `OWNER_MAX_BUY_SOL`.
@@ -249,12 +253,12 @@ The skills tell your agent how to run the bots. The bots themselves still run on
    {"requests": [{"request_id": "test_vet_1", "ca": "<MINT_ADDRESS>", "intent": "research"}]}
    ```
    The verdict lands in `json_relay/ca_research_response.json` and as a `ca_intel` packet in `inbox/`.
-5. **Small test buy:** in paper mode, have your agent send a buy, or add one to `json_relay/agent_signals.json`:
+5. **Paper signal, written by you:** if you want a dry-run fill, you put one suggestion into `json_relay/agent_signals.json` yourself. With the shipped suggest default the engine holds it until you approve that id. The assistant does not write this file and does not approve it.
    ```json
    {"signals": [{"signal_id": "test_buy_1", "action": "buy", "mint": "<MINT_ADDRESS>", "amount_sol": 0.01,
      "params": {"stop_loss_pct": 30, "tp_targets_pct": [50]}, "mode": "flip", "reasoning": "plugin test"}]}
    ```
-   Once paper looks right, set `SNIPER_PAPER_MODE=0` and repeat with the smallest size you're OK losing.
+   Leave `SNIPER_PAPER_MODE` on. Turning signing on later is a separate decision you make in the wizard, not a step the assistant takes.
 6. **Confirm stop/target armed and confirm/fail:** every signal gets an answer that echoes your id as `request_id`. Look for a `signal_ack_*` / `trade_confirmation_*` packet in `inbox/` (or a `signal_failure_*` with the reason), plus the row in `bot_logs/signals_response_history.jsonl`. Then open the console (**1 Live dashboard**) and check that the position shows its stop loss and take profit armed. If your agent sends `set_protection_batch`, that gets its own confirm or fail too.
 7. **Clean up:** sell the test bag (`"action": "sell"`) or let the stop or target close it. Then move the handled packets to `inbox_results/done/`.
 
@@ -343,7 +347,7 @@ Sniper and your agent talk through plain files, so any agent that can read and w
 - **You → agent:** text files in `owner_commands/`.
 - Each request is processed once (tracked in `bot_logs/`), so nothing fires twice.
 
-The `automations/` files are ready-made loops telling your agent how often to read these. Details in SETUP.md sections 6 and 11.
+The `automations/` files are optional notes for a pass you explicitly ask for. They are not loaded with the plugin. Details in SETUP.md sections 6 and 11.
 
 ## Contributing
 

@@ -1,6 +1,6 @@
 # LEARNINGS.md  -  {AGENT_NAME}'s Distilled Wisdom
 
-**This is the baseline. Your agent loads this every session.**
+**This is the owner's baseline.** It is not loaded into a coding session. Open it only when the owner asks. It does not authorize a trade, a signature, a launch, or an edit under `bots/`.
 
 How the loop works:
 1. Sections 1-7 are the **distilled core**  -  re-summarized nightly by the self-eval run, never grow out of control
@@ -68,7 +68,7 @@ _Wisdom from helper agents, kept even after they are retired. Stable section._
 
 ## 7. OPEN AUDIT ITEMS (rolling  -  review weekly)
 
-_P1/P2/P3 open items, contradictions tagged [CONTESTED], doctrine drift flags, and `P2 - SECTION 2 CANDIDATE` items the agent promotes (and logs) next run. Resolved items roll off via a "Recently Resolved" bullet._
+_P1/P2/P3 open items, contradictions tagged [CONTESTED], doctrine drift flags, and `P2 - SECTION 2 CANDIDATE` items the owner may promote. The assistant does not change gates or `bots/` from this file._
 
 ---
 
