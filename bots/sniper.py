@@ -374,10 +374,10 @@ PAPER_WARNING = ("PAPER mode (default): the full pipeline runs (feed, filters, r
                  "LIVE is opt-in: it signs real transactions with your burner wallet key. Use a fresh burner funded "
                  "only with what you can lose.")
 
-AGENT_MODE_WARNING = ("How much can the agent do on its own?\n"
-                      "  suggest (default): it proposes each buy and sell and WAITS for your OK "
+AGENT_MODE_WARNING = ("Owner-only engine switch. An agent never sets this.\n"
+                      "  suggest (default): each buy and sell WAITS for your OK "
                       "(/approve <id> or python bots/approve.py <id>). Nothing trades until you approve.\n"
-                      "  auto: WARNING - it buys and sells on its own inside your caps, with no per-trade sign-off. "
+                      "  auto: owner opt-in only. Buys and sells can proceed inside your caps, with no per-trade sign-off. "
                       "With live keys that is real money moving without asking you.")
 
 
@@ -391,17 +391,17 @@ def agent_mode_answer(cur: dict, answers: dict | None) -> str:
     console.print(Panel(AGENT_MODE_WARNING, border_style="red", title="1. Agent autonomy"))
     v = Prompt.ask("Agent mode", choices=["suggest", "auto"], default=now)
     if v == "auto" and now != "auto":
-        if Prompt.ask("The agent will trade without asking you. Type AUTO to confirm",
+        if Prompt.ask("Owner opt-in: trades can proceed without a fresh approval. Type AUTO to confirm",
                       default="", show_default=False).strip() != "AUTO":
             console.print("[yellow]not confirmed; staying in suggest mode[/]")
             return "suggest"
     return v
 
 
-ACTIVE_HOURS_HELP = ("The bot is a loop that runs continuously on its cadence. Active hours only decide when it may "
-                     "take NEW buys and surface new cards; sells, stops, SL/TP and monitoring always run, nothing is "
-                     "cut off mid-order, and it resumes on its own when the window opens.\n"
-                     "  00:00-23:59 (default) = always on. Examples: 09:00-23:00, 22:00-02:00, 09:00-12:00,18:00-23:00.")
+ACTIVE_HOURS_HELP = ("Active hours only decide when the engine may take new buys and surface new cards. "
+                     "Sells, stops, SL/TP and monitoring keep running, nothing is cut off mid-order, "
+                     "and new buys resume when the window opens.\n"
+                     "  00:00-23:59 (default) covers the whole day. Examples: 09:00-23:00, 22:00-02:00, 09:00-12:00,18:00-23:00.")
 
 
 def active_hours_answer(cur: dict, answers: dict | None) -> dict:
@@ -443,7 +443,7 @@ def paper_mode_answer(cur: dict, answers: dict | None) -> str:
 
 
 def apply_setup_json() -> bool:
-    """Agent override: setup.json {"env": {...}} is written into .env, no questions asked.
+    """Owner file: setup.json {"env": {...}} is written into .env, no questions asked.
     Exception: paper -> live needs "SNIPER_CONFIRM_LIVE": "LIVE" alongside (owner's explicit OK)."""
     p = setup_json_path()
     if not p:
@@ -461,15 +461,15 @@ def apply_setup_json() -> bool:
         env = {k: v for k, v in env.items() if k != "SNIPER_PAPER_MODE"}
         log("setup.json asked to leave paper mode without SNIPER_CONFIRM_LIVE=LIVE; staying in paper")
     env.pop("SNIPER_CONFIRM_LIVE", None)
-    if env or not ENV_FILE.exists():   # agent path also creates bots/.env from bots/.env.example
+    if env or not ENV_FILE.exists():   # this path also creates bots/.env from bots/.env.example
         write_env({k: str(v) for k, v in env.items()})
-    log(f"configured by agent ({p.name}, {len(env)} keys)")
+    log(f"configured from setup.json ({p.name}, {len(env)} keys)")
     try:   # setup.json holds secrets: remove it once applied (values now live in bots/.env)
         p.unlink()
         log(f"deleted {p.name} after applying (secrets now only in bots/.env)")
     except OSError as e:
         log(f"could not delete {p.name} ({type(e).__name__}); delete it by hand")
-    console.print(f"[{GREEN}]configured by agent[/] ({p.name}, file deleted after applying)")
+    console.print(f"[{GREEN}]configured from setup.json[/] ({p.name}, file deleted after applying)")
     return True
 
 
@@ -566,8 +566,8 @@ def menu_panel() -> Panel:
 # ── wizard ───────────────────────────────────────────────────────────────────
 # ── wizard status ──
 EXTRA_FIELDS = [   # (key, prompt, secret, default): asked as yes/no or extra keys, shown in the status table
-    ("AGENT_MODE", "Agent autonomy (suggest = waits for your OK, auto = trades on its own)", False, "suggest"),
-    ("ACTIVE_HOURS", "Active hours for new buys (loop runs 24/7; 00:00-23:59 = always)", False, "00:00-23:59"),
+    ("AGENT_MODE", "Agent autonomy (owner-only; suggest = default, waits for your OK)", False, "suggest"),
+    ("ACTIVE_HOURS", "Active hours for new buys (00:00-23:59 = the whole day)", False, "00:00-23:59"),
     ("ACTIVE_TZ", "Timezone for active hours", False, "America/New_York"),
     ("LLM_MAIN", "Main brain", False, "grok"),
     ("LLM_FALLBACK", "Fallback brain (none = no fallback)", False, "ollama"),
@@ -1745,7 +1745,7 @@ def first_run_check() -> None:
         return
     env = read_env()
     if env_complete(env):
-        log("configured by agent (complete .env)")
+        log("configured from existing .env")
         return
     if not sys.stdin.isatty():
         console.print("[yellow].env is incomplete and there is no terminal for the wizard. "

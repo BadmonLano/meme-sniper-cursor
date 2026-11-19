@@ -3,7 +3,7 @@
 **Who this is for:** the owner setting Meme Sniper up. An assistant may read this only when you explicitly ask for setup help. That request does not authorize a trade, a signature, a launch, or an edit under `bots/`. Skills are opt-in. Patches are diffs in `owner_inbox/` for you to apply. No trade fires without your fresh approval.
 
 > **Ask these first, in this order (wizard menu 2 does the same):**
-> 1. **Agent autonomy (`AGENT_MODE`).** `suggest` (default, preselected): the agent proposes every buy and sell and the bot waits for the owner's `/approve <id>` (owner commands) or `python bots/approve.py <id>`; unanswered suggestions expire after `AGENT_MODE_APPROVAL_TTL_MIN` (60). `auto`: **warning** - the agent buys and sells on its own inside the caps with no per-trade sign-off. The wizard makes the owner type `AUTO`; `setup.json` needs `"AGENT_CONFIRM_AUTO": "AUTO"`. Never pick auto for the owner.
+> 1. **Owner engine switch (`AGENT_MODE`).** Default `suggest` (preselected). The engine holds every buy and sell until the owner approves that trade (`/approve <id>`, owner commands, or `python bots/approve.py <id>`). Unanswered suggestions expire after `AGENT_MODE_APPROVAL_TTL_MIN` (60). `auto` is an owner-only opt-in: the owner types `AUTO` in the wizard, or the owner writes `"AGENT_CONFIRM_AUTO": "AUTO"` in `setup.json`. An agent never sets `AGENT_MODE`. A missing value, or `auto` without that owner confirmation, stays `suggest`.
 > 2. **Active hours (`ACTIVE_HOURS` + `ACTIVE_TZ`).** Default `00:00-23:59` (the whole day), `America/New_York`. If you start the Python process, it stays up until you stop it. The window only gates new buys and new cards. The IDE assistant does not start that process. See "Process uptime" below.
 > 3. **Paper or live (`SNIPER_PAPER_MODE`).** Paper is the default for new setups (`bots/.env.example` ships `SNIPER_PAPER_MODE=1`): every trade is simulated at real quotes, nothing is signed or sent, and no wallet private key is needed. **Live keys are opt-in**: only after the owner chooses live does the wizard ask for the burner wallet's private key, with a warning, and leaving paper needs `LIVE` typed (section 4.2). Token launches stay off-chain (`LAUNCH_RAIL_LIVE=0`) until the owner sets `LAUNCH_RAIL_LIVE=1`. Make sure the owner uses a burner wallet and understands the warning in the README before going live.
 
@@ -112,7 +112,7 @@ You can also run one option directly: `--start`, `--dashboard`, `--wizard`, `--l
          "OWN_LAUNCH_MODE": "hold", "OWN_LAUNCH_TREASURY_PCT": "50", "SNIPER_LEARN_REST": "true"}}
 ```
 
-Every key under `env` is written into `bots/.env`, and the launcher logs `configured by agent` to `bot_logs/sniper_launcher.log` (that log line is the engine's wording; the owner writes the file). A complete `bots/.env` also skips the wizard. `setup.json` holds secrets, so the launcher **deletes it right after applying it** (it is also in `.gitignore`). The owner writes it again for the next change. The assistant does not put keys in it.
+Every key under `env` is written into `bots/.env`, and the launcher logs `configured from setup.json` to `bot_logs/sniper_launcher.log`. The owner writes the file. A complete `bots/.env` also skips the wizard and logs `configured from existing .env`. `setup.json` holds secrets, so the launcher **deletes it right after applying it** (it is also in `.gitignore`). The owner writes it again for the next change. An agent does not put keys in it and does not set `AGENT_MODE`.
 
 ## 2. Who's running it
 
@@ -145,7 +145,7 @@ Every bot resolves paths from this one root and creates any missing folders on f
 
 ## 4. Wallet, sizes and going live
 
-These settings are configuration. `AGENT_MODE=suggest` (default) holds every buy and sell until the owner approves that trade. `auto` is an engine switch the owner can set in the wizard; the assistant does not set it and does not send trades.
+These settings are configuration. `AGENT_MODE` defaults to `suggest`: the engine holds every buy and sell until the owner approves that trade. `auto` is an owner-only engine opt-in (the owner types `AUTO` in the wizard). An agent never sets `AGENT_MODE` and never sends a trade.
 
 The owner picks one:
 
