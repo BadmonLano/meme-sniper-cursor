@@ -110,7 +110,7 @@ In `bots/.env` keep `AGENT_MODE=suggest` and `SNIPER_PAPER_MODE=1` (both shipped
 | `bots/.env` | ignored by git | Your keys live here. **Never commit it, zip it or paste it anywhere.** Only `.env.example` (blank) is in the repo. |
 
 Honest notes:
-- **Agent autonomy is the first setup question.** `AGENT_MODE=suggest` (default): the agent proposes trades and waits for your `/approve`. `AGENT_MODE=auto` lets it buy and sell on its own inside the caps; pick it only if you accept that.
+- **Owner engine switch, asked first in the wizard.** `AGENT_MODE` defaults to `suggest`: buys and sells wait for your `/approve`. `auto` is an owner-only opt-in you set yourself by typing `AUTO`. An agent never sets it.
 - Use a **burner hot wallet** holding only what you can afford to lose. Never your main wallet.
 - **What wallet access means:** the private key in `bots/.env` lets the bot sign **any** transaction from that wallet, not just trades: it could move or spend everything in it. So use a burner, keep the balance small, and sweep profits out (`LEDGER_ADDRESS`).
 - **Agent buys need a working RPC.** Without a reachable `RPC_URL` (or `HELIUS_API_KEY`) buy signals are refused, not queued.

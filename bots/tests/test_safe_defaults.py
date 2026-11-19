@@ -1,4 +1,4 @@
-"""v1.0.18: missing env stays paper / suggest-side, and skills do not hijack an agent.
+"""v1.0.19: missing env stays paper / suggest-side, and skills do not hijack an agent.
 
 No network, no keys, no trading.
 """
@@ -132,9 +132,32 @@ def test_skills_and_manifests_do_not_hijack():
         plugin = json.loads((ROOT / rel).read_text(encoding="utf-8"))
         assert plugin["name"] == "meme-sniper-cursor"
         assert plugin.get("id") == "meme-sniper-cursor"
-        assert plugin["version"] == "1.0.18"
+        assert plugin["version"] == "1.0.19"
         assert plugin["license"] == "MIT"
         desc = plugin["description"].lower()
         assert "do not edit the trading engine" in desc
         assert "paper mode and suggest mode are the defaults" in desc
         assert "cursor directory edition" in desc
+
+
+def test_reviewer_leftover_wording_is_display_only():
+    sniper = (BOTS / "sniper.py").read_text(encoding="utf-8")
+    labels = (BOTS / "settings_labels.json").read_text(encoding="utf-8")
+    assert "configured by agent" not in sniper
+    assert "configured from setup.json" in sniper
+    assert "configured from existing .env" in sniper
+    assert 'Prompt.ask("Owner opt-in: trades can proceed without a fresh approval. Type AUTO to confirm"' in sniper
+    assert '.strip() != "AUTO"' in sniper
+    assert "loop runs 24/7" not in sniper
+    assert "loop runs 24/7" not in labels
+    assert '"ACTIVE_HOURS"' in labels
+    setup = (ROOT / "SETUP.md").read_text(encoding="utf-8")
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "buys and sells on its own" not in setup
+    assert "buys and sells on its own" not in readme
+    assert "An agent never sets `AGENT_MODE`" in setup
+    for rel in ("CHANGELOG.md", "TIMELINE.md"):
+        text = (ROOT / rel).read_text(encoding="utf-8").lower()
+        assert "always-on loop" not in text
+        assert "loop meant to run continuously" not in text
+        assert "always-on hosted agent" not in text

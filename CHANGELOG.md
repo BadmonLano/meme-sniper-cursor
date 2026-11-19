@@ -2,6 +2,15 @@
 
 Full history: [TIMELINE.md](TIMELINE.md).
 
+## v1.0.19 (2026-11-19): wording scrub, no behavior change
+
+Display text and history only. Defaults, config keys, and engine behavior are unchanged. Paper mode, suggest mode, armed stops off, and the launch rail off stay as shipped.
+
+- v1.0.16 history in this file and in `TIMELINE.md` now describes active hours and lane cadences, and points at v1.0.17 and v1.0.18 for opt-in suggest-only skills.
+- The `ACTIVE_HOURS` settings label no longer says the process runs all day as a loop. The key is unchanged.
+- Launcher log lines that said a setup file was applied by an agent now say `configured from setup.json`, or `configured from existing .env` when `.env` was already complete. The apply path is unchanged.
+- `SETUP.md` and the README describe `AGENT_MODE=auto` as an owner-only engine opt-in. The default remains `suggest`. An agent never sets the switch.
+
 ## v1.0.18 (2026-11-19): skills are opt-in and suggest-only
 
 Directory review follow-up. Engine behavior and the MIT license are unchanged. Paper mode, suggest mode, armed stops off, and the launch rail off are still the shipped defaults.
@@ -20,12 +29,14 @@ Directory review follow-up. The bot's features and the MIT license are unchanged
 - **Skills and automations are opt-in and consistent.** `meme-hunter`, `ca-intel`, and `code-monitor` no longer treat a base58 address as a trigger, no longer tell the agent to fire a live order, and no longer tell it to patch `bots/*.py`. One safety contract: suggestions for the owner, the owner applies source patches. The same rule is in the other skills, the lane prompts, and both plugin manifests.
 - Tests: `bots/tests/test_safe_defaults.py`, plus the armed-stop and owner-position tests updated for the new defaults.
 
-## v1.0.16 (2026-10-29): always-on loop, active hours, tunable lane cadences
-- **The bot is a loop meant to run continuously.** New "Always on: loop, cadence and active hours" section at the top of README.md and SETUP.md, plus notes in `skills/meme-hunter/SKILL.md`, `automations/README.md` and each lane file: keep it on an always-on hosted agent or auto-start on boot, and keep the lanes as saved recurring automations.
-- **`ACTIVE_HOURS` (default `00:00-23:59` = always on), `ACTIVE_TZ` (`America/New_York`), `ACTIVE_DAYS` (blank = every day).** Outside the window the loop idles on new buys and new inbox cards (pre-buy gate, so never mid-order), keeps sells, SL/TP, the watchdog and monitoring running, and resumes on its own. Existing `TRADING_HOURS` / `TRADING_TZ` still apply on top. `bots/active_hours.py` (+ `python bots/active_hours.py` status, no secrets); wired into `sniper_guard.in_trading_window`.
+## v1.0.16 (2026-10-29): active hours and lane cadences
+
+Historical note. This release added the active-hours window and the lane cadence settings. v1.0.17 made paper, suggest, armed stops, and the launch rail the safe defaults. v1.0.18 replaced session-default skill wording with opt-in suggest-only notes. The engine settings from this release are unchanged.
+
+- **`ACTIVE_HOURS` (default `00:00-23:59`, the whole day), `ACTIVE_TZ` (`America/New_York`), `ACTIVE_DAYS` (blank = every day).** Outside the window, new buys and new inbox cards wait. Monitoring continues. `TRADING_HOURS` / `TRADING_TZ` still apply on top. `bots/active_hours.py` (`python bots/active_hours.py` prints status, no secrets); wired into `sniper_guard.in_trading_window`.
 - **Lane cadences (tunable):** `LANE_CADENCE_SNIPER_LANE_MIN` (10), `LANE_CADENCE_MISC_LANE_MIN` (15), `LANE_CADENCE_WARDEN_LANE_MIN` (20), `LANE_MORNING_BRIEF_AT` (08:00), `LANE_NIGHTLY_EVAL_AT` (23:30). Bot-side cadence vars unchanged, not duplicated.
-- **Setup wizard:** active hours + timezone asked right after `AGENT_MODE`. Labels added to `bots/settings_labels.json`.
-- Defaults keep the old always-on behaviour. Test: `bots/tests/test_active_hours.py`.
+- **Setup wizard:** active hours and timezone are asked right after `AGENT_MODE`. Labels live in `bots/settings_labels.json`.
+- Test: `bots/tests/test_active_hours.py`.
 
 ## v1.0.15 (2026-10-29): owner-chosen agent autonomy (suggest by default), paper by default, league mode
 For the cursor.directory review: the published skills no longer override human-in-the-loop.
