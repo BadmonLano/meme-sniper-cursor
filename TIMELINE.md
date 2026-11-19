@@ -2,6 +2,9 @@
 
 Version history, newest first. Release numbers (v1.x) are the public repo; the engine inside keeps its own number (v14.3).
 
+## v1.0.18 (2026-11-19): skills are opt-in and suggest-only
+- Skill playbooks shrunk to research and suggestions. None load unless the user asks. Engine defaults and the MIT license are unchanged. Details: CHANGELOG.md.
+
 ## v1.0.17 (2026-11-12): safe defaults, no agent hijack, no unapproved exits
 - Missing `SNIPER_PAPER_MODE` is paper. Live signing, armed stops, the owner-position timeout, and the launch rail are explicit opt-ins and ship off. Skills suggest; they do not trade on a stray address and they do not patch the engine. Details: CHANGELOG.md.
 

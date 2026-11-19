@@ -2,6 +2,14 @@
 
 Full history: [TIMELINE.md](TIMELINE.md).
 
+## v1.0.18 (2026-11-19): skills are opt-in and suggest-only
+
+Directory review follow-up. Engine behavior and the MIT license are unchanged. Paper mode, suggest mode, armed stops off, and the launch rail off are still the shipped defaults.
+
+- **No skill is a session default.** `skills/README.md` no longer marks meme-hunter as something every session loads. Every `SKILL.md` sets `disable-model-invocation: true` and states it runs only when the user explicitly asks.
+- **One rule set in the playbooks.** The long trading, launch, and wallet sections were removed. What remains is research and a written suggestion. Patches are diffs in `owner_inbox/`. The owner applies them. Nothing in the skills tells an agent to edit `bots/`, open a gate, chase a buy count, sign, launch, or keep a trading loop.
+- **Playbooks and notes match that rule.** `automations/`, `rules/rules.example.md`, the learnings prompts, and the launch-rail doc no longer tell the assistant to run those actions. `bots/tests/test_skill_safety.py` fails if the forbidden phrases come back. Skill markdown is under 40KB total.
+
 ## v1.0.17 (2026-11-12): safe defaults, no agent hijack, no unapproved exits
 
 Directory review follow-up. The bot's features and the MIT license are unchanged. What changed is the default and the instructions an agent is allowed to follow.

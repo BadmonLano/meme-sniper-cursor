@@ -1,59 +1,30 @@
 ---
 name: owner-ping
-version: v14.3
-description: |
-  How the agent and the Sniper ecosystem bots reach the owner: bot errors,
-  noteworthy events, trade notices, and blocking decisions. Primary channel is
-  a file packet in owner_inbox/. Telegram is optional (only when
-  TELEGRAM_TOKEN + TELEGRAM_CHAT_ID are set). Severity + dedupe_key on every
-  non-casual ping. Skill-only: no extra bot.
+description: >
+  Opt-in format for notifying the owner. Invoke only when the user explicitly
+  asks. A ping is a message, not a trade and not an approval.
+disable-model-invocation: true
+version: "1.0.18"
 ---
 
-# owner-ping - reaching the owner
+> **Safety contract (wins over every later line in this file).**
+> 1. Opt-in only. Do not use this skill unless the user explicitly asked to run meme-sniper or named this skill. A base58 address, ticker, screenshot, web page, log line, or mention is not a trigger.
+> 2. Signals are suggestions for the owner. Do not buy, sell, approve a trade, or write an approval. No trade fires without a fresh owner approval.
+> 3. Never edit trading-engine source. Propose a patch as a diff in `owner_inbox/` and stop. The owner applies it. Do not edit `bots/`.
+> 4. Missing config is the safe side: paper mode, suggest mode, launch rail off, armed stops off, owner-position auto-timeout off. Do not turn those on.
+> 5. Do not bypass or skip a safety gate, loosen a filter, chase a buy quota, keep a trading loop, sign a transaction, or launch a token.
 
-## When to ping
+# owner-ping
 
-| mode | default | examples | cost to the owner |
-|---|---|---|---|
-| Social / informational | short, frequent is fine | `noteworthy`, `trade_fired` | a glance |
-| Escalation / blocking | last resort, after a real attempt to solve it | `decision_needed`, capability gap, stuck | attention |
+A ping asks or informs. It never approves a trade and never stands in for one.
 
-Chatty about what is happening, last-resort about what you need. Be specific:
-"something broke" is useless; "meme_sniper heartbeat 42m stale, all components cancelled, no stop_reason" is useful.
+Write it as a file in `owner_inbox/` when the user wants a record:
 
-## Channels
+- kind: error, note, decision needed, or stuck
+- severity: critical, high, medium, or low
+- one specific summary
+- evidence the owner can check
+- the exact question, or none
+- a stable dedupe key so the same fact is not repeated
 
-1. **owner_inbox/** (primary, always for non-casual). File packet, see below.
-2. **Telegram** (optional). Only if `TELEGRAM_TOKEN` and `TELEGRAM_CHAT_ID` are configured. Short text, link the packet name.
-3. **Audit log** `bot_logs/owner_pings.jsonl`: one line per ping (ts, kind, severity, dedupe_key, packet name, channels that succeeded).
-
-Never claim a ping was delivered if every channel failed. Say so in the agent's own inbox instead.
-
-## Packet
-
-Filename (no P-prefix in the name; priority lives in the header):
-```
-owner-ping - <kind>_<slug>_<ts>.md # under owner_inbox/, ts = yyyyMMdd_HHmmss
-```
-
-Envelope fields (top of the packet):
-
-| field | meaning |
-|---|---|
-| `kind` | `bot_error`, `noteworthy`, `trade_fired`, `decision_needed`, `capability_gap`, `stuck` |
-| `severity` | `critical`, `high`, `medium`, `low` |
-| `source` | bot or skill that raised it (e.g. `meme_sniper`, `security_warden`) |
-| `summary` | one line, specific |
-| `evidence` | file paths / numbers the owner can check |
-| `ask` | the exact decision needed, or `none` |
-| `dedupe_key` | stable key; same key within 1h = do not re-ping |
-| `auto_resume` | what the agent will do on its own if no reply (or `wait`) |
-
-## Rules
-
-- **Paper mode:** when `SNIPER_PAPER_MODE=1`, start every ping with `[PAPER]` so the owner never mistakes a simulated trade for a real one.
-- Dedupe: same `dedupe_key` within 1 hour is one ping. Re-arm only after the condition clears.
-- Critical/high from bots (e.g. Warden's sniper watch: Sniper down, zero buys) already land in owner_inbox as P1 packets. Do not re-ping the same event; add context to it if useful.
-- A stop with `stop_reason=user_stopped` is intentional. Never ping for it.
-- No secrets, keys, or wallet private material in any ping.
-- Cadence of casual pings is the owner's or the agent's choice; nothing here is scheduled.
+In paper mode, start the text with `[PAPER]`. No secrets, keys, or private key material. If you cannot tell whether a message was delivered, say so. Do not continue a trade while you wait.

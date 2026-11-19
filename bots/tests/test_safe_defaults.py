@@ -1,4 +1,4 @@
-"""v1.0.17: missing env stays paper / suggest-side, and skills do not hijack an agent.
+"""v1.0.18: missing env stays paper / suggest-side, and skills do not hijack an agent.
 
 No network, no keys, no trading.
 """
@@ -132,7 +132,7 @@ def test_skills_and_manifests_do_not_hijack():
         plugin = json.loads((ROOT / rel).read_text(encoding="utf-8"))
         assert plugin["name"] == "meme-sniper-cursor"
         assert plugin.get("id") == "meme-sniper-cursor"
-        assert plugin["version"] == "1.0.17"
+        assert plugin["version"] == "1.0.18"
         assert plugin["license"] == "MIT"
         desc = plugin["description"].lower()
         assert "do not edit the trading engine" in desc

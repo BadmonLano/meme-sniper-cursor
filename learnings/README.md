@@ -1,13 +1,13 @@
-# Learnings loop
+# Learnings notes
 
-A nightly self-eval for your agent. One question: **what did I learn today that can make money tomorrow?** Reports are noise; edges stay.
+Optional notes for the owner. They are not a coding-session default and they are not a trading loop. One question when you ask for a distill: what was wrong in the read? Reports are noise; a real miss stays. The assistant does not change filters or `bots/` from here.
 
 ## How entries flow
 
 1. **Section 8 (raw):** during the day the agent and bots append short entries between the two append-window markers in `LEARNINGS.md` (`### [ISO] | [TYPE] | [SOURCE]` + 1-3 lines).
 2. **Nightly distill:** the self-eval run archives the raw window, takes a dual backup, then distills each entry into Sections 1-7 (lane lessons, patterns, tooling, open items) and empties Section 8.
 3. **Candidates to Section 7:** anything that looks like a hard rule, a contradiction, or doctrine drift goes to Section 7 as a candidate or P1 item.
-4. **The agent promotes to Section 2:** the agent adds or retires Critical Rules itself when a candidate has repeat evidence, logs each change (rule, reason, evidence) to `bot_logs/learnings_summarizer_history.jsonl` and in Section 7 "Recently Resolved", and sends a notify-only owner-ping.
+4. **The owner promotes to Section 2:** the owner adds or retires Critical Rules when a candidate has repeat evidence. The assistant may draft the wording. It does not apply a looser gate and it does not edit `bots/`.
 
 Recurring lessons that keep showing up but never get promoted are tracked as coverage gaps, so the leak is visible instead of silently restated.
 
